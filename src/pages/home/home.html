@@ -1,0 +1,33 @@
+<ion-header>
+  <ion-navbar color="katmane">
+    <ion-title>KONVOI</ion-title>
+    <ion-buttons end>
+    <button ion-button small clear item-end icon-start (click)="signOut()">
+      <ion-icon name="log-out"></ion-icon>
+      Logout
+    </button>
+    </ion-buttons>
+  </ion-navbar>
+</ion-header>
+
+
+<ion-content>
+  <div #map id="map"></div>
+</ion-content>
+
+<ion-footer>
+    <ion-toolbar>
+          <ion-buttons end>
+            <button ion-button color="secondary" icon-end (click)="start()">
+                Start 
+                <ion-icon name="navigate"></ion-icon>
+            </button>
+          </ion-buttons>
+          <ion-buttons start>
+            <button ion-button color="danger" icon-start (click)="stop()">
+                <ion-icon name="hand"></ion-icon> 
+                Stop 
+            </button>
+          </ion-buttons>
+    </ion-toolbar>
+  </ion-footer>
