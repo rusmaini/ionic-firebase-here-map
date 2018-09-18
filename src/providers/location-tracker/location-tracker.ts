@@ -1,5 +1,6 @@
 
 //import { ToastController } from 'ionic-angular';
+//import { ViewChild, ElementRef } from '@angular/core';
 import { Injectable, NgZone } from '@angular/core';
 import { BackgroundGeolocation } from '@ionic-native/background-geolocation';
 import { Geolocation, Geoposition } from '@ionic-native/geolocation';
@@ -22,6 +23,7 @@ export class LocationTrackerProvider {
   public lat: number = 0;
   public lng: number = 0;
 
+  ui: any;
   map: any;
   myloc: any;
   mkr: any = [];
@@ -40,7 +42,7 @@ export class LocationTrackerProvider {
     public geolocation: Geolocation) {
   }
  
-  startTracking(map) {
+  startTracking(map,ui) {
  
     // Background Tracking
    
@@ -95,35 +97,30 @@ export class LocationTrackerProvider {
       this.dataLokasi = this.fireDatabase.object('lokasi/').valueChanges();
       this.dataLokasi.subscribe(lok => {
         for(let k in lok){
+          //add group 
+          var group = new H.map.Group();
+          map.addObject(group);
+          // add 'tap' event listener, that opens info bubble, to the group
+          group.addEventListener('tap', function (evt) {
+            // event target is the marker itself, group is a parent event target
+            // for all objects that it contains
+            var bubble =  new H.ui.InfoBubble(evt.target.getPosition(), {
+              // read custom data
+              content: evt.target.getData()
+            });
+            // show info bubble
+            ui.addBubble(bubble);
+          }, false);
+
+          //add marker & label
           if (!this.mkr[k]) {
-            //papar marker
-            this.mkr[k] = new H.map.Marker({lat:lok[k].latitude, lng:lok[k].longitude});
-            map.addObject(this.mkr[k]);
+            this.addMarkerToGroup(group, {lat:lok[k].latitude, lng:lok[k].longitude},
+              '<div>' + lok[k].username + '</div>');
           } else {
             this.mkr[k].setPosition({lat:lok[k].latitude, lng:lok[k].longitude});
           }
         }
       });
-
-      /*
-      if (!this.myloc) {
-        //papar marker
-        this.myloc = new H.map.Marker({lat:position.coords.latitude, lng:position.coords.longitude});
-        map.addObject(this.myloc);
-      } else {
-        this.myloc.setPosition({lat:position.coords.latitude, lng:position.coords.longitude});
-      }
-
-      this.profileData = this.fireDatabase.object('profile/'+data.uid).valueChanges();
-        this.profileData.subscribe(p => {
-          if(p){
-            this.profile.username   = p.username;
-            this.profile.firstName  = p.firstName;
-            this.profile.lastName   = p.lastName;
-            this.profile.telephone  = p.telephone;
-          }
-        });
-      */
 
       //simpan lokasi ke firebase
       this.fireAuth.authState.take(1).subscribe(auth => {
@@ -144,6 +141,13 @@ export class LocationTrackerProvider {
    
   }
  
+  addMarkerToGroup(group, coordinate, html) {
+    var marker = new H.map.Marker(coordinate);
+    // add custom data to the marker
+    marker.setData(html);
+    group.addObject(marker);
+  }
+
   stopTracking() {
  
     console.log('stopTracking');

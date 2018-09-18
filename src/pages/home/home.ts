@@ -32,7 +32,7 @@ export class HomePage {
   }
 
   start(){
-    this.locationTracker.startTracking(this.map);
+    this.locationTracker.startTracking(this.map,this.ui);
   }
  
   stop(){
@@ -43,8 +43,8 @@ export class HomePage {
 
     // Initialize the platform object:
     var platform = new H.service.Platform({
-      'app_id': 'YOUR_APP_ID',
-      'app_code': 'YOUR_APP_CODE',
+      'app_id': '49MTD7bERe9UAZaKLJOG',
+      'app_code': 'cdlBuvn9h2X8LPzTR7xskw',
       //'useHTTPS': true
 
       });
