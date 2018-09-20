@@ -45,7 +45,7 @@ export class LocationTrackerProvider {
   startTracking(map,ui) {
  
     // Background Tracking
-   
+   /*
     let config = {
       desiredAccuracy: 0,
       stationaryRadius: 20,
@@ -65,19 +65,22 @@ export class LocationTrackerProvider {
       });
    
     }, (err) => {
-   
       console.log(err);
-   
     });
    
     // Turn ON the background-geolocation system.
     this.backgroundGeolocation.start();
-   
+   */
    
     // Foreground Tracking
     let options = {
       frequency: 3000,
-      enableHighAccuracy: true
+      enableHighAccuracy: true,
+      desiredAccuracy: 0,
+      stationaryRadius: 20,
+      distanceFilter: 10,
+      debug: true,
+      interval: 2000
     };
     
     this.watch = this.geolocation.watchPosition(options).filter((p: any) => p.code === undefined).subscribe((position: Geoposition) => {
@@ -90,7 +93,22 @@ export class LocationTrackerProvider {
         this.lng = position.coords.longitude;
       });
 
-      //centerkan map
+      //simpan lokasi ke firebase
+      this.fireAuth.authState.take(1).subscribe(auth => {
+        this.profileData = this.fireDatabase.object('profile/'+auth.uid).valueChanges();
+        this.profileData.subscribe(p => {
+          if(p){
+            this.profile.username = p.username;
+            this.fireDatabase.object('lokasi/'+auth.uid).set({
+              latitude: position.coords.latitude,
+              longitude: position.coords.longitude,
+              username: this.profile.username
+            });
+          } 
+        });
+      })
+
+      //centerkan map ikut user 
       map.setCenter({lat:position.coords.latitude, lng:position.coords.longitude});
       
       //let getLokasi= [];
@@ -114,35 +132,21 @@ export class LocationTrackerProvider {
 
           //add marker & label
           if (!this.mkr[k]) {
+            //marker guna icon
+            var mymarker  = '../../assets/marker/mark_04.png';
+            var myIcon = new H.map.Icon(mymarker);
             this.addMarkerToGroup(group, {lat:lok[k].latitude, lng:lok[k].longitude},
-              '<div>' + lok[k].username + '</div>');
+              '<div>' + lok[k].username + '</div>', myIcon);
           } else {
             this.mkr[k].setPosition({lat:lok[k].latitude, lng:lok[k].longitude});
           }
         }
       });
-
-      //simpan lokasi ke firebase
-      this.fireAuth.authState.take(1).subscribe(auth => {
-        this.profileData = this.fireDatabase.object('profile/'+auth.uid).valueChanges();
-        this.profileData.subscribe(p => {
-          if(p){
-            this.profile.username = p.username;
-            this.fireDatabase.object('lokasi/'+auth.uid).set({
-              latitude: position.coords.latitude,
-              longitude: position.coords.longitude,
-              username: this.profile.username
-            });
-          } 
-        });
-      })
-      
     });
-   
   }
  
-  addMarkerToGroup(group, coordinate, html) {
-    var marker = new H.map.Marker(coordinate);
+  addMarkerToGroup(group, coordinate, html, ikon) {
+    var marker = new H.map.Marker(coordinate, {icon: ikon});
     // add custom data to the marker
     marker.setData(html);
     group.addObject(marker);
